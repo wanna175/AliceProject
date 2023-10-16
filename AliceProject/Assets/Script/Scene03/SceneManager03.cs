@@ -9,8 +9,9 @@ public class SceneManager03 : SceneManager00
     #endregion
 
     #region 변수
-    [SerializeField] private List<Collider2D> _board = null;
     [SerializeField] private PlayerController _player = null;
+    int playerLayer, groundLayer;
+    
     #endregion
 
     #region 함수
@@ -18,19 +19,20 @@ public class SceneManager03 : SceneManager00
     {
         
     }
+    private void Start()
+    {
+        playerLayer = LayerMask.NameToLayer("Player");
+        groundLayer = LayerMask.NameToLayer("Ground");
+    }
     private void Update()
     {
-        if (_player.isJump)
-        {
-            for (int i = 0; i < _board.Count; i++)
-                _board[i].isTrigger = true;
-        }
-        if (_player.isFalling)
-        {
-            Debug.Log("tlqkf");
-            for (int i = 0; i < _board.Count; i++)
-                _board[i].isTrigger = false;
-        }
+    }
+    private void FixedUpdate()
+    {
+        if (_player._rigidbody.velocity.y > 0)
+            Physics2D.IgnoreLayerCollision(playerLayer, groundLayer, true);
+        else
+            Physics2D.IgnoreLayerCollision(playerLayer, groundLayer, false);
     }
     #endregion
 }

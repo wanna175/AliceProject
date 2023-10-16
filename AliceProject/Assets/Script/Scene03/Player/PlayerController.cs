@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    #region 변수
+    private Queue<Pockect_watch> pooling_queue = new Queue<Pockect_watch>();
+    [SerializeField] private GameObject _watch_prefab = null;
+    [SerializeField] private Transform _watch_parent = null;
+    #endregion
     #region 프로퍼티
     public Animator _aniCtrl { get; set; }//플레이어 애니메이터
     public Rigidbody2D _rigidbody { get; set; }
@@ -16,29 +21,35 @@ public class PlayerController : MonoBehaviour
 
     #region 플레이어 스텟===>파일로 읽어와서 기획자가 테스트 하게 하자.
     private float velocity = 500f;
-    private float jumpForce = 3000f;
+    private float jumpForce = 2500f;
     #endregion
 
     #region 변수
-    public bool isJump;
-    public bool isFalling;
+    public bool isJump { get; set; }
+    public bool isFalling { get; set; }
+    public bool isAttack { get; set; }
+    public bool isHide { get; set; }
+
+
     #endregion
 
     #region 함수
     //초기화
     private void Awake()
     {
+        isHide = false;
         isJump = false;
-        isFalling = true;
+        isFalling = false;
+        isAttack = false;
         _directionH = 0;
         _aniCtrl = this.gameObject.GetComponent<Animator>();
         _rigidbody = this.gameObject.GetComponent<Rigidbody2D>();
         _spriteRenderer = this.gameObject.GetComponent<SpriteRenderer>();
-
     }
     private void Start()
     {
         InitStateMachine();
+        Initalize_pool(5);
     }
     private void Update()
     {
@@ -52,8 +63,11 @@ public class PlayerController : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        isJump = false;
-        isFalling = false;
+        if (collision.gameObject.CompareTag("Floor"))
+        {
+            isJump = false;
+            isFalling = false;
+        }
     }
     private void InitStateMachine()
     {
@@ -62,6 +76,7 @@ public class PlayerController : MonoBehaviour
         _state_machine.AddState(STATE.JUMP, new JumpState(this));
         _state_machine.AddState(STATE.ATTACK, new AttackState(this));
         _state_machine.AddState(STATE.HIT, new HitState(this));
+        _state_machine.AddState(STATE.HIDE, new HideState(this));
     }
     private void SetDirection()
     {
@@ -72,10 +87,35 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.UpArrow) && !isJump)
             _state_machine.ChangeState(STATE.JUMP);
-        if (_directionH==0&& !isJump)
+        if (Input.GetKeyDown(KeyCode.Space) && !isJump && !isAttack)
+            _state_machine.ChangeState(STATE.ATTACK);
+        if (_directionH==0&& !isJump&&!isAttack)
             _state_machine.ChangeState(STATE.IDLE);
-        if(_directionH!=0&&!isJump)
+        if(_directionH!=0&&!isJump&&!isAttack)
             _state_machine.ChangeState(STATE.MOVE);
+    }
+    #endregion
+    #region 오브젝트 풀링 관련
+    private void Initalize_pool(int count)
+    {
+        for (int i = 0; i < count; ++i)
+            pooling_queue.Enqueue(Create_object());
+    }
+    private Pockect_watch Create_object()
+    {
+        var obj = Instantiate(_watch_prefab, _watch_parent).GetComponent<Pockect_watch>();
+        obj.gameObject.SetActive(false);
+        return obj;
+    }
+    public Pockect_watch Get_object()
+    {
+        var obj = (pooling_queue.Count <= 0) ? Create_object() : pooling_queue.Dequeue();
+        return obj;
+    }
+    public void Return_object(Pockect_watch obj)
+    {
+        obj.gameObject.SetActive(false);
+        pooling_queue.Enqueue(obj);
     }
     #endregion
 }

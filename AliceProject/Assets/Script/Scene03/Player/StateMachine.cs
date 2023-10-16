@@ -8,7 +8,8 @@ public enum STATE
     MOVE,
     JUMP,
     ATTACK,
-    HIT
+    HIT,
+    HIDE
 }
 public class StateMachine
 {
@@ -139,10 +140,14 @@ public class JumpState : BaseState
     #region 생성자
     public JumpState(PlayerController player) : base(player) { }
     #endregion
+    #region 변수
+    bool double_jump;
+    #endregion
 
     #region 함수
     public override void OnEnterState()
     {
+        double_jump = false;
         _player._aniCtrl.SetInteger("State", (int)STATE.JUMP);
         _player._rigidbody.AddForce(Vector2.up * _player.JumpForce, ForceMode2D.Impulse);
         _player.isJump = true;
@@ -150,18 +155,27 @@ public class JumpState : BaseState
     }
     public override void OnUpdateState()
     {
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !double_jump)
+        {
+            _player._rigidbody.velocity = Vector2.zero;
+            _player._rigidbody.AddForce(Vector2.up * _player.JumpForce, ForceMode2D.Impulse);
+            _player.isFalling = false;
+            double_jump = true;
+        }
+
         if (_player._directionH < 0)
             _player._spriteRenderer.flipX = true;
         else if (_player._directionH > 0)
             _player._spriteRenderer.flipX = false;
 
-        if (_player._rigidbody.velocity.y < 0)
-            _player.isFalling = true;
+        Vector3 cmd = (_player._directionH * Vector3.right).normalized;
+        _player.gameObject.transform.localPosition += _player.Velocity * Time.deltaTime * cmd;
+
     }
     public override void OnFixedUpdateState()
     {
-        Vector3 cmd = (_player._directionH * Vector3.right).normalized;
-        _player.gameObject.transform.localPosition += _player.Velocity *Time.deltaTime * cmd;
+        if (_player._rigidbody.velocity.y < 0)
+            _player.isFalling = true;
     }
     public override void OnExitState()
     {
@@ -175,6 +189,40 @@ public class AttackState : BaseState
     public AttackState(PlayerController player) : base(player) { }
     #endregion
 
+    #region 변수
+    private float Timer;
+    #endregion
+    #region 함수
+    public override void OnEnterState()
+    {
+        Timer = 0.0f;
+        _player._aniCtrl.SetInteger("State", (int)STATE.ATTACK);
+        _player.isAttack = true;
+        var obj = _player.Get_object();
+        obj.Set_Pocket_watch();
+    }
+    public override void OnUpdateState()
+    {
+        Timer += Time.deltaTime;
+        if (Timer > 1.0f)
+            _player.isAttack = false;
+    }
+    public override void OnFixedUpdateState()
+    {
+    }
+    public override void OnExitState()
+    {
+        _player.isAttack = false;
+    }
+    #endregion
+}
+
+public class HitState : BaseState
+{
+    #region 생성자
+    public HitState(PlayerController player) : base(player) { }
+    #endregion
+
     #region 함수
     public override void OnEnterState()
     {
@@ -191,10 +239,10 @@ public class AttackState : BaseState
     #endregion
 }
 
-public class HitState : BaseState
+public class HideState : BaseState
 {
     #region 생성자
-    public HitState(PlayerController player) : base(player) { }
+    public HideState(PlayerController player) : base(player) { }
     #endregion
 
     #region 함수
