@@ -148,7 +148,7 @@ public class JumpState : BaseState
     public override void OnEnterState()
     {
         double_jump = false;
-        _player._aniCtrl.SetInteger("State", (int)STATE.JUMP);
+        //_player._aniCtrl.SetInteger("State", (int)STATE.JUMP);
         _player._rigidbody.AddForce(Vector2.up * _player.JumpForce, ForceMode2D.Impulse);
         _player.isJump = true;
         _player.isFalling = false;
@@ -196,7 +196,7 @@ public class AttackState : BaseState
     public override void OnEnterState()
     {
         Timer = 0.0f;
-        _player._aniCtrl.SetInteger("State", (int)STATE.ATTACK);
+        //_player._aniCtrl.SetInteger("State", (int)STATE.ATTACK);
         _player.isAttack = true;
         var obj = _player.Get_object();
         obj.Set_Pocket_watch();
