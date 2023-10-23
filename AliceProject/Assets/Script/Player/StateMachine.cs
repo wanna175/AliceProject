@@ -27,6 +27,7 @@ public class StateMachine
         AddState(stateName, state);
         _current_state = GetState(stateName);
     }
+
     #endregion
 
     #region 함수
@@ -63,6 +64,7 @@ public class StateMachine
     }
     #endregion
 }
+public abstract class State { }
 public abstract class BaseState
 {
     #region 프로퍼티
@@ -149,6 +151,7 @@ public class JumpState : BaseState
     {
         double_jump = false;
         //_player._aniCtrl.SetInteger("State", (int)STATE.JUMP);
+        _player._rigidbody.velocity = Vector3.zero;
         _player._rigidbody.AddForce(Vector2.up * _player.JumpForce, ForceMode2D.Impulse);
         _player.isJump = true;
         _player.isFalling = false;
@@ -179,40 +182,6 @@ public class JumpState : BaseState
     }
     public override void OnExitState()
     {
-    }
-    #endregion
-}
-
-public class AttackState : BaseState
-{
-    #region 생성자
-    public AttackState(PlayerController player) : base(player) { }
-    #endregion
-
-    #region 변수
-    private float Timer;
-    #endregion
-    #region 함수
-    public override void OnEnterState()
-    {
-        Timer = 0.0f;
-        //_player._aniCtrl.SetInteger("State", (int)STATE.ATTACK);
-        _player.isAttack = true;
-        var obj = _player.Get_object();
-        obj.Set_Pocket_watch();
-    }
-    public override void OnUpdateState()
-    {
-        Timer += Time.deltaTime;
-        if (Timer > 1.0f)
-            _player.isAttack = false;
-    }
-    public override void OnFixedUpdateState()
-    {
-    }
-    public override void OnExitState()
-    {
-        _player.isAttack = false;
     }
     #endregion
 }
@@ -248,9 +217,13 @@ public class HideState : BaseState
     #region 함수
     public override void OnEnterState()
     {
+        _player._aniCtrl.SetInteger("State", (int)STATE.HIDE);
+        _player.isHide = true;
     }
     public override void OnUpdateState()
     {
+        if(Input.GetKeyUp(KeyCode.DownArrow))
+            _player.isHide = false;
     }
     public override void OnFixedUpdateState()
     {

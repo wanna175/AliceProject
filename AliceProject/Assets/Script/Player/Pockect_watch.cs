@@ -22,13 +22,13 @@ public class Pockect_watch : MonoBehaviour
     }
     public void Set_Pocket_watch()
     {
-        this.transform.position = _player.transform.position;
+        this.transform.position = _player.transform.position+Vector3.up*150;
         flipX = _player._spriteRenderer.flipX;
         this.gameObject.SetActive(true);
     }
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if(!other.CompareTag("Player"))
+        if(!other.CompareTag("Player")&&!other.CompareTag("Floor"))
             _player.Return_object(this);   
     }
     #endregion

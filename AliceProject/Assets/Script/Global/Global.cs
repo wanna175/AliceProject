@@ -14,6 +14,9 @@ public static class Global{
     public const float _gravity = -10000;
     #endregion
 
+    #region 오브젝트 화면 제한
+    public const float object_x = 874f;
+    #endregion
     #region 씬이름
     public const string SCENE_NAME_01 = "Scene01 (메뉴)";
     public const string SCENE_NAME_03 = "Scene03 (플레이)";
