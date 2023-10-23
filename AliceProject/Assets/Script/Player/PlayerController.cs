@@ -56,6 +56,9 @@ public class PlayerController : MonoBehaviour
         _state_machine?.UpdateState();
         SetDirection();
         ChangePlayerState();
+        PlayerDontOutScreenSize();
+        if (Input.GetKeyDown(KeyCode.Space) && !isHide && !isAttack)
+            Attack();
     }
     private void FixedUpdate()
     {
@@ -74,7 +77,6 @@ public class PlayerController : MonoBehaviour
         _state_machine = new StateMachine(STATE.IDLE, new IdleState(this));
         _state_machine.AddState(STATE.MOVE, new MoveState(this));
         _state_machine.AddState(STATE.JUMP, new JumpState(this));
-        _state_machine.AddState(STATE.ATTACK, new AttackState(this));
         _state_machine.AddState(STATE.HIT, new HitState(this));
         _state_machine.AddState(STATE.HIDE, new HideState(this));
     }
@@ -85,14 +87,31 @@ public class PlayerController : MonoBehaviour
     //플레이어 상태를 바꾼다.
     private void ChangePlayerState()
     {
-        if (Input.GetKeyDown(KeyCode.UpArrow) && !isJump)
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isJump&&!isHide)
             _state_machine.ChangeState(STATE.JUMP);
-        if (Input.GetKeyDown(KeyCode.Space) && !isJump && !isAttack)
-            _state_machine.ChangeState(STATE.ATTACK);
-        if (_directionH==0&& !isJump&&!isAttack)
+        if (Input.GetKeyDown(KeyCode.DownArrow) && !isJump)
+            _state_machine.ChangeState(STATE.HIDE);
+        if (_directionH==0&& !isJump&&!isAttack && !isHide)
             _state_machine.ChangeState(STATE.IDLE);
-        if(_directionH!=0&&!isJump&&!isAttack)
+        if(_directionH!=0&&!isJump&&!isAttack && !isHide)
             _state_machine.ChangeState(STATE.MOVE);
+    }
+    private void Attack()
+    {
+        isAttack = true;
+        var obj = Get_object();
+        obj.Set_Pocket_watch();
+        StartCoroutine(timer());
+    }
+    private IEnumerator timer()
+    {
+        yield return new WaitForSeconds(0.4f);
+        isAttack = false;
+    }
+    private void PlayerDontOutScreenSize()
+    {
+        float player_x = Mathf.Clamp(this.transform.localPosition.x, -Global.object_x, Global.object_x);
+        this.transform.localPosition = new Vector3(player_x, this.transform.localPosition.y, this.transform.localPosition.z);
     }
     #endregion
     #region 오브젝트 풀링 관련
